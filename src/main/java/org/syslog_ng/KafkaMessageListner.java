@@ -61,6 +61,7 @@ public class KafkaMessageListner extends AbstractKafkaMessageListner {
             if (consumerConnector == null) {
                 consumerConnector = Consumer.createJavaConsumerConnector(new ConsumerConfig(properties));
                 log.info("Consumer connector created successfully");
+                this.threadCount = threadsCount;
                 start(threadsCount);
             }
             isCreated = true;
@@ -78,22 +79,22 @@ public class KafkaMessageListner extends AbstractKafkaMessageListner {
      */
     @Override
     public void start(int threadsCount) throws Exception {
-        try {
+        /*try {
             createKafkaConnector(threadsCount);
         } catch (Exception e) {
             log.error("Error while creating consumer connector " + e.getMessage());
-        }
-        this.threadCount = threadsCount;
+        }*/
+      //  this.threadCount = threadsCount;
         try {
-            Map<String, Integer> topicCount = new HashMap<String, Integer>();
+            Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
             if (topics != null && topics.size() > 0) {
                 System.out.println("topics count " + topics.size());
                 for (String topic : topics) {
-                    topicCount.put(topic, threadCount);
+                    topicCountMap.put(topic, threadCount);
                 }
 
                 Map<String, List<KafkaStream<byte[], byte[]>>> consumerStreams = consumerConnector
-                        .createMessageStreams(topicCount);
+                        .createMessageStreams(topicCountMap);
                 consumerIteraror = new ArrayList<ConsumerIterator<byte[], byte[]>>();
                 for(String topic : topics) {
                     List<KafkaStream<byte[], byte[]>> streams = consumerStreams.get(topic);
@@ -169,6 +170,14 @@ public class KafkaMessageListner extends AbstractKafkaMessageListner {
         }
     }
 
+    public void readMessages(){
+        if(consumerIteraror.size()==1){
+            readMessages(consumerIteraror.get(0));
+        }
+        else{
+            log.error("Multiple topics available, can't consume");
+        }
+    }
     @Override
     public void readMessages(ConsumerIterator<byte[], byte[]> consumerIterator) {
         if (consumerIteraror.size() == 1) {
