@@ -1,23 +1,52 @@
 package org.syslog_ng;
 
-import kafka.consumer.ConsumerIterator;
-import kafka.consumer.KafkaStream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public class KafkaConsumer implements Runnable {
-    private KafkaStream stream;
-    private int threadNumber;
+import java.util.List;
+
+public class KafkaConsumer {
     private static final Log log = LogFactory.getLog(KafkaConsumer.class);
 
-    public KafkaConsumer(KafkaStream stream, int threadNumber) {
-        this.stream = stream;
-        this.threadNumber = threadNumber;
+    private KafkaMessageListner kafkaMessageListner;
+    private KafkaProperties kafkaProperties;
+    private List<String> topics;
+    private int threadsCount;
+
+    public KafkaConsumer (KafkaProperties kafkaProperties, List<String> topics, int threadsCount){
+        this.kafkaProperties = kafkaProperties;
+        this.topics = topics;
+        this.threadsCount = threadsCount;
+    }
+
+    public void startMessageListener() {
+        if(kafkaMessageListner==null){
+            kafkaMessageListner = new KafkaMessageListner();
+            kafkaMessageListner.init(kafkaProperties.getProperties(),topics);
+        }
+    }
+
+    public Object poll() {
+        try {
+            if(!kafkaMessageListner.createKafkaConnector(threadsCount)){
+                return null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if(kafkaMessageListner.hasMultipleTopicsToConsume()) {
+            kafkaMessageListner.consumeMultipleTopics();
+        } else{
+           if(kafkaMessageListner.hasNext()){
+               kafkaMessageListner.readMessages();
+           }
+        }
+        return null;
     }
 
     /**
      * It will consume messages from the kafka server
-     */
+     *//*
     @Override
     public void run() {
         ConsumerIterator<byte[], byte[]> consumerIterator = stream.iterator();
@@ -26,5 +55,5 @@ public class KafkaConsumer implements Runnable {
             log.info("Message received in thread " + threadNumber + " : " + message);
         }
         log.debug("Shutting down thread " + threadNumber);
-    }
+    }*/
 }
