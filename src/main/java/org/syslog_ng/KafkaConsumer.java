@@ -24,24 +24,34 @@ public class KafkaConsumer {
             kafkaMessageListner = new KafkaMessageListner();
             kafkaMessageListner.init(kafkaProperties.getProperties(),topics);
         }
+
     }
 
-    public Object poll() {
+    public boolean createConnection() {
         try {
             if(!kafkaMessageListner.createKafkaConnector(threadsCount)){
-                return null;
+                return false;
+            }
+            else{
+                InternalMessageSender.debug("Connection created with Kafka");
+                return true;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            InternalMessageSender.error(e.getMessage());
+            //e.printStackTrace();
+            return false;
         }
+    }
+
+    public boolean poll() {
         if(kafkaMessageListner.hasMultipleTopicsToConsume()) {
             kafkaMessageListner.consumeMultipleTopics();
         } else{
-           if(kafkaMessageListner.hasNext()){
+           while(kafkaMessageListner.hasNext()){
                kafkaMessageListner.readMessages();
            }
         }
-        return null;
+        return false;
     }
 
     /**
