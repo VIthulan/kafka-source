@@ -2,7 +2,6 @@ group 'syslog- ng'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
-
 sourceCompatibility = 1.5
 
 repositories {
@@ -11,7 +10,16 @@ repositories {
         dirs '/home/vithulan/gsoc/syslog-ng/install/lib/syslog-ng/java-modules'
     }
 }
-
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Jar generation',
+                'Implementation-Version': version,
+                'Main-Class': 'org.syslog_ng.KafkaSourceHandler'
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
     compile name: 'syslog-ng-core'
