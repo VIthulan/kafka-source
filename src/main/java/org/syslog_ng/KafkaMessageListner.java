@@ -66,7 +66,8 @@ public class KafkaMessageListner extends AbstractKafkaMessageListner {
             }
             isCreated = true;
         } catch (Exception e) {
-            log.error("Error while creating consumer connector " + e.getMessage());
+            InternalMessageSender.error(e.getMessage());
+            //log.error("Error while creating consumer connector " + e.getMessage());
         }
         return isCreated;
     }
@@ -164,8 +165,10 @@ public class KafkaMessageListner extends AbstractKafkaMessageListner {
 
     public void consumeMultipleTopics() {
         for (ConsumerIterator<byte[], byte[]> consumerIte : consumerIteraror) {
-            if (hasNext(consumerIte)) {
+            while (hasNext(consumerIte)) {
+
                 readMessages(consumerIte);
+                log.info("Testing.."+hasNext(consumerIte));
             }
         }
     }
@@ -180,12 +183,14 @@ public class KafkaMessageListner extends AbstractKafkaMessageListner {
     }
     @Override
     public void readMessages(ConsumerIterator<byte[], byte[]> consumerIterator) {
-        if (consumerIteraror.size() == 1) {
+        /*if (consumerIteraror.size() == 1) {*/
             String message = new String(consumerIterator.next().message());
+            System.out.println("Recieved : "+message);
             log.info("Message has read from kafka : "+message);
-        } else {
+        /*} else {
             log.debug("There are multiple topics to consume from not a single topic");
-        }
+            System.out.println("Multiple topics to consume!!!");
+        }*/
     }
 
 
