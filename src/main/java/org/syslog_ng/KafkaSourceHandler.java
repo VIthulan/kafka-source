@@ -27,6 +27,7 @@ public class KafkaSourceHandler extends LogSource {
     }
 
     protected boolean open() {
+        kafkaConsumer.startMessageListener();
         return kafkaConsumer.createConnection();
     }
 
@@ -35,12 +36,16 @@ public class KafkaSourceHandler extends LogSource {
     }
 
     protected int readMessage(LogMessage logMessage) {
-        boolean status = kafkaConsumer.poll();
-        if(status){
-            return 1;
+        String message = kafkaConsumer.poll();
+        if(message!=null){
+            InternalMessageSender.info("Message!! : "+message);
+            System.out.println("LogSource : "+ message);
+            logMessage.setValue("MSG",message);
+            return 0;
         }
-        else
-            return -1;
+        else{
+            return 2;
+        }
 
     }
 
@@ -53,11 +58,10 @@ public class KafkaSourceHandler extends LogSource {
     }
 
     protected boolean isReadable() {
-        return false;
+        return kafkaConsumer.hasNext();
     }
-
     protected String getStatsInstance() {
-        return null;
+        return "Kafka_source_test";
     }
 
     protected String getPersistName() {
