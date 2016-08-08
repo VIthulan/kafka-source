@@ -12,7 +12,6 @@ import java.util.concurrent.Executors;
 public class KafkaMessageListner extends AbstractKafkaMessageListner {
     private static final Log log = LogFactory.getLog(KafkaMessageListner.class);
     private Properties properties;
-    private ExecutorService executor;
 
     /**
      * These are default values, it can be configured in main method
@@ -20,8 +19,6 @@ public class KafkaMessageListner extends AbstractKafkaMessageListner {
     private String zookeeper_session_time_out = "400";
     private String zookeeper_sync_time_out = "200";
     private String commit_interval = "1000";
-
-
 
 
     @Override
@@ -80,16 +77,9 @@ public class KafkaMessageListner extends AbstractKafkaMessageListner {
      */
     @Override
     public void start(int threadsCount) throws Exception {
-        /*try {
-            createKafkaConnector(threadsCount);
-        } catch (Exception e) {
-            log.error("Error while creating consumer connector " + e.getMessage());
-        }*/
-      //  this.threadCount = threadsCount;
         try {
             Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
             if (topics != null && topics.size() > 0) {
-                System.out.println("topics count " + topics.size());
                 for (String topic : topics) {
                     topicCountMap.put(topic, threadCount);
                 }
@@ -97,20 +87,7 @@ public class KafkaMessageListner extends AbstractKafkaMessageListner {
                 Map<String, List<KafkaStream<byte[], byte[]>>> consumerStreams = consumerConnector
                         .createMessageStreams(topicCountMap);
                 consumerIteraror = new ArrayList<ConsumerIterator<byte[], byte[]>>();
-                for(String topic : topics) {
-                    List<KafkaStream<byte[], byte[]>> streams = consumerStreams.get(topic);
-                    executor = Executors.newFixedThreadPool(threadCount);
-                    startConsumers(streams);
-                }
-                /*executor = Executors.newFixedThreadPool(threadCount);
-                log.info("Thread pool with " + threadsCount + " thread/s is initiated");
-                int threadNumber = 0;
-                for (final KafkaStream stream : streams) {
-
-                    //System.out.println("Thread number " + threadNumber);
-                    *//*executor.submit(new KafkaConsumer(stream, threadNumber));
-                    threadNumber++;*//*
-                }*/
+                startConsumers(consumerStreams.get(topics.get(0)));
             }
         } catch (Exception e) {
             log.error("Error while starting the consumer " + e.getMessage());
@@ -127,9 +104,9 @@ public class KafkaMessageListner extends AbstractKafkaMessageListner {
         return false;
     }
 
-    public boolean hasNext(ConsumerIterator<byte[], byte[]> consumerIterator){
+    public boolean hasNext(ConsumerIterator<byte[], byte[]> consumerIterator) {
         try {
-            return consumerIterator.hasNext();
+            return consumerIterator.hasNext();  //toDo this hasnext returns true / waits for new kafka message
         } catch (ConsumerTimeoutException e) {
             //exception ignored
             if (log.isDebugEnabled()) {
@@ -156,49 +133,24 @@ public class KafkaMessageListner extends AbstractKafkaMessageListner {
         }
     }
 
-    public boolean hasMultipleTopicsToConsume(){
-        if (consumerIteraror.size() > 1) {
-            return true;
+    public String readMessages() {
+        if (consumerIteraror.size() == 1) {
+            return readMessages(consumerIteraror.get(0));
         } else {
-            return false;
-        }
-    }
-
-    public void consumeMultipleTopics() {
-        int count = 0;
-        for (ConsumerIterator<byte[], byte[]> consumerIte : consumerIteraror) {
-            executor.submit(new KafkaConsumerThread(consumerIte,count));
-            count++;
-            /*while (consumerIte.hasNext()) {
-
-                readMessages(consumerIte);
-                log.info("Testing.."+hasNext(consumerIte));
-            }*/
-        }
-    }
-
-    public void readMessages(){
-        if(consumerIteraror.size()==1){
-            readMessages(consumerIteraror.get(0));
-        }
-        else{
             log.error("Multiple topics available, can't consume");
+            return null;
         }
     }
+
     @Override
-    public void readMessages(ConsumerIterator<byte[], byte[]> consumerIterator) {
-        int count =0;
-        executor.submit(new KafkaConsumerThread(consumerIterator,count));
-        count++;
-        /*if (consumerIteraror.size() == 1) {*/
-           /* String message = new String(consumerIterator.next().message());
-            System.out.println("Recieved : "+message);
-            log.info("Message has read from kafka : "+message);*/
-        /*} else {
-            log.debug("There are multiple topics to consume from not a single topic");
-            System.out.println("Multiple topics to consume!!!");
-        }*/
+    public String readMessages(ConsumerIterator<byte[], byte[]> consumerIterator) {
+        if (consumerIteraror.size() == 1) {
+            String message = new String(consumerIterator.next().message());
+            System.out.println("Recieved : " + message);
+            log.info("Message has read from kafka : " + message);
+            return message;
+        } else {
+            return null;
+        }
     }
-
-
 }

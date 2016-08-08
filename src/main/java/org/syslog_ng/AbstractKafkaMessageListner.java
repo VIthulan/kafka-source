@@ -43,22 +43,5 @@ public abstract class AbstractKafkaMessageListner {
 
     public abstract boolean hasNext();
 
-    /**
-     * checks multiple topics
-     *
-     * @return
-     */
-    public boolean hasMultipleTopicsToConsume() {
-        return false;
-    }
-
-    /**
-     * Configuration for multiple topics
-     *
-     */
-    public void consumeMultipleTopics() {
-
-    }
-
-    public abstract void readMessages(ConsumerIterator<byte[], byte[]> consumerIterator);
+    public abstract String readMessages(ConsumerIterator<byte[], byte[]> consumerIterator);
 }

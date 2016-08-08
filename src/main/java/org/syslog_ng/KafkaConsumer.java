@@ -13,57 +13,47 @@ public class KafkaConsumer {
     private List<String> topics;
     private int threadsCount;
 
-    public KafkaConsumer (KafkaProperties kafkaProperties, List<String> topics, int threadsCount){
+    public KafkaConsumer(KafkaProperties kafkaProperties, List<String> topics, int threadsCount) {
         this.kafkaProperties = kafkaProperties;
         this.topics = topics;
         this.threadsCount = threadsCount;
     }
 
     public void startMessageListener() {
-        if(kafkaMessageListner==null){
+        if (kafkaMessageListner == null) {
             kafkaMessageListner = new KafkaMessageListner();
-            kafkaMessageListner.init(kafkaProperties.getProperties(),topics);
+            kafkaMessageListner.init(kafkaProperties.getProperties(), topics);
         }
 
     }
 
     public boolean createConnection() {
         try {
-            if(!kafkaMessageListner.createKafkaConnector(threadsCount)){
+            if (!kafkaMessageListner.createKafkaConnector(threadsCount)) {
                 return false;
-            }
-            else{
-                InternalMessageSender.debug("Connection created with Kafka");
+            } else {
+                //InternalMessageSender.debug("Connection created with Kafka");
                 return true;
             }
         } catch (Exception e) {
-            InternalMessageSender.error(e.getMessage());
-            //e.printStackTrace();
+            //InternalMessageSender.error(e.getMessage());
+            System.out.println(e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
 
-    public boolean poll() {
-        if(kafkaMessageListner.hasMultipleTopicsToConsume()) {
-            kafkaMessageListner.consumeMultipleTopics();
-        } else{
-           while(kafkaMessageListner.hasNext()){
-               kafkaMessageListner.readMessages();
-           }
+    public String poll() {
+        if (kafkaMessageListner.hasNext()) {
+            return kafkaMessageListner.readMessages();
+        } else {
+            return null;
         }
-        return false;
+
     }
 
-    /**
-     * It will consume messages from the kafka server
-     *//*
-    @Override
-    public void run() {
-        ConsumerIterator<byte[], byte[]> consumerIterator = stream.iterator();
-        while (consumerIterator.hasNext()) {
-            String message = new String(consumerIterator.next().message());
-            log.info("Message received in thread " + threadNumber + " : " + message);
-        }
-        log.debug("Shutting down thread " + threadNumber);
-    }*/
+    public boolean hasNext() {
+        return kafkaMessageListner.hasNext();
+    }
+
 }
