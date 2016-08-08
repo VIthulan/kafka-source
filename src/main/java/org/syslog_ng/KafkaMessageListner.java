@@ -99,6 +99,7 @@ public class KafkaMessageListner extends AbstractKafkaMessageListner {
                 consumerIteraror = new ArrayList<ConsumerIterator<byte[], byte[]>>();
                 for(String topic : topics) {
                     List<KafkaStream<byte[], byte[]>> streams = consumerStreams.get(topic);
+                    executor = Executors.newFixedThreadPool(threadCount);
                     startConsumers(streams);
                 }
                 /*executor = Executors.newFixedThreadPool(threadCount);
@@ -164,12 +165,15 @@ public class KafkaMessageListner extends AbstractKafkaMessageListner {
     }
 
     public void consumeMultipleTopics() {
+        int count = 0;
         for (ConsumerIterator<byte[], byte[]> consumerIte : consumerIteraror) {
-            while (hasNext(consumerIte)) {
+            executor.submit(new KafkaConsumerThread(consumerIte,count));
+            count++;
+            /*while (consumerIte.hasNext()) {
 
                 readMessages(consumerIte);
                 log.info("Testing.."+hasNext(consumerIte));
-            }
+            }*/
         }
     }
 
@@ -183,10 +187,13 @@ public class KafkaMessageListner extends AbstractKafkaMessageListner {
     }
     @Override
     public void readMessages(ConsumerIterator<byte[], byte[]> consumerIterator) {
+        int count =0;
+        executor.submit(new KafkaConsumerThread(consumerIterator,count));
+        count++;
         /*if (consumerIteraror.size() == 1) {*/
-            String message = new String(consumerIterator.next().message());
+           /* String message = new String(consumerIterator.next().message());
             System.out.println("Recieved : "+message);
-            log.info("Message has read from kafka : "+message);
+            log.info("Message has read from kafka : "+message);*/
         /*} else {
             log.debug("There are multiple topics to consume from not a single topic");
             System.out.println("Multiple topics to consume!!!");
