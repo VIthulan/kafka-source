@@ -78,11 +78,11 @@ public class KafkaMessageListner {
         }
     }
 
-    public String readMessages() {
-            return readMessages(consumerIteraror.get(0));
+    public String readMessage() {
+            return readMessage(consumerIteraror.get(0));
     }
 
-    public String readMessages(ConsumerIterator<byte[], byte[]> consumerIterator) {
+    public String readMessage(ConsumerIterator<byte[], byte[]> consumerIterator) {
         String message = new String(consumerIterator.next().message());
         InternalMessageSender.info("Received message : " + message);
         return message;

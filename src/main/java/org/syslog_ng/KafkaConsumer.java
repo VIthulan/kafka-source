@@ -35,7 +35,7 @@ public class KafkaConsumer {
     }
 
     public String poll() {
-        return kafkaMessageListner.readMessages();
+        return kafkaMessageListner.readMessage();
     }
 
     public boolean hasNext() {
