@@ -1,70 +1,41 @@
 package org.syslog_ng;
 
 import kafka.consumer.*;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import kafka.javaapi.consumer.ConsumerConnector;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 
-public class KafkaMessageListner extends AbstractKafkaMessageListner {
-    private static final Log log = LogFactory.getLog(KafkaMessageListner.class);
+public class KafkaMessageListner {
     private Properties properties;
-
-    /**
-     * These are default values, it can be configured in main method
-     */
-    private String zookeeper_session_time_out = "400";
-    private String zookeeper_sync_time_out = "200";
-    private String commit_interval = "1000";
+    private String topic;
+    private ConsumerConnector consumerConnector;
+    private List<ConsumerIterator<byte[], byte[]>> consumerIteraror;
 
 
-    @Override
-    public void init(Properties properties, List<String> topic) {
+    public void init(Properties properties, String topic) {
         this.properties = properties;
-        log.info("Kafka consumer properties are set successfully");
-        this.topics = topic;
+        InternalMessageSender.info("Kafka consumer properties are set successfully");
+        this.topic = topic;
     }
-
-    /**
-     * Setting up zookeeper configurations
-     *
-     * @param zookeeper_session_time_out Zookeeper session timeout. If the consumer fails to heartbeat to zookeeper
-     *                                   for this period of time it is considered dead and a rebalance will occur.
-     * @param zookeeper_sync_time_out    How far a ZK follower can be behind a ZK leader
-     * @param commit_interval            The frequency in ms that the consumer offsets are committed to zookeeper.
-     */
-    public void initZooKeeper(String zookeeper_session_time_out, String zookeeper_sync_time_out,
-                              String commit_interval) {
-        this.zookeeper_session_time_out = zookeeper_session_time_out;
-        this.zookeeper_sync_time_out = zookeeper_sync_time_out;
-        this.commit_interval = commit_interval;
-    }
-
 
     /**
      * Creating consumer connector
      *
-     * @param threadsCount number of threads to run
      * @return true if connector created successfully
      * @throws Exception
      */
-    @Override
-    public boolean createKafkaConnector(int threadsCount) throws Exception {
+    public boolean createKafkaConnector() throws Exception {
         boolean isCreated = false;
         try {
             if (consumerConnector == null) {
                 consumerConnector = Consumer.createJavaConsumerConnector(new ConsumerConfig(properties));
-                log.info("Consumer connector created successfully");
-                this.threadCount = threadsCount;
-                start(threadsCount);
+                InternalMessageSender.info("Consumer connector created successfully");
+                start();
             }
             isCreated = true;
         } catch (Exception e) {
-            InternalMessageSender.error(e.getMessage());
-            //log.error("Error while creating consumer connector " + e.getMessage());
+            InternalMessageSender.error("Error while creating consumer connector " + e.getMessage());
         }
         return isCreated;
     }
@@ -72,85 +43,48 @@ public class KafkaMessageListner extends AbstractKafkaMessageListner {
     /**
      * Start the consumer threads
      *
-     * @param threadsCount number of threads to run
      * @throws Exception
      */
-    @Override
-    public void start(int threadsCount) throws Exception {
+    public void start() throws Exception {
         try {
             Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
-            if (topics != null && topics.size() > 0) {
-                for (String topic : topics) {
-                    topicCountMap.put(topic, threadCount);
-                }
-
+            if (topic != null) {
+                topicCountMap.put(topic, 1);
                 Map<String, List<KafkaStream<byte[], byte[]>>> consumerStreams = consumerConnector
                         .createMessageStreams(topicCountMap);
                 consumerIteraror = new ArrayList<ConsumerIterator<byte[], byte[]>>();
-                startConsumers(consumerStreams.get(topics.get(0)));
+                List<KafkaStream<byte[], byte[]>> streams = consumerStreams.get(topic);
+                consumerIteraror.add(streams.get(0).iterator());
             }
         } catch (Exception e) {
-            log.error("Error while starting the consumer " + e.getMessage());
+            InternalMessageSender.error("Error while starting the consumer " + e.getMessage());
         }
     }
 
-    @Override
     public boolean hasNext() {
-        if (consumerIteraror.size() == 1) {
             return hasNext(consumerIteraror.get(0));
-        } else {
-            log.debug("There are multiple topics to consume from not a single topic,");
-        }
-        return false;
     }
 
     public boolean hasNext(ConsumerIterator<byte[], byte[]> consumerIterator) {
         try {
             return consumerIterator.hasNext();  //toDo this hasnext returns true / waits for new kafka message
         } catch (ConsumerTimeoutException e) {
-            //exception ignored
-            if (log.isDebugEnabled()) {
-                log.debug("Topic has no new messages to consume.");
-            }
+            InternalMessageSender.info("There is no no new messages to consume");
+            InternalMessageSender.info("Consumer timed out - Exiting");
             return false;
         } catch (Exception e) {
-            //Message Listening thread is interrupted during server shutdown.
-            if (log.isDebugEnabled()) {
-                log.debug("Kafka listener is interrupted by server shutdown.", e);
-            }
+            InternalMessageSender.debug("Kafka listener is interrupted " + e.getMessage());
             return false;
-        }
-    }
-
-    /**
-     * This implementation is for multiple topics
-     *
-     * @param streams
-     */
-    protected void startConsumers(List<KafkaStream<byte[], byte[]>> streams) {
-        if (streams.size() >= 1) {
-            consumerIteraror.add(streams.get(0).iterator());
         }
     }
 
     public String readMessages() {
-        if (consumerIteraror.size() == 1) {
             return readMessages(consumerIteraror.get(0));
-        } else {
-            log.error("Multiple topics available, can't consume");
-            return null;
-        }
     }
 
-    @Override
     public String readMessages(ConsumerIterator<byte[], byte[]> consumerIterator) {
-        if (consumerIteraror.size() == 1) {
-            String message = new String(consumerIterator.next().message());
-            System.out.println("Recieved : " + message);
-            log.info("Message has read from kafka : " + message);
-            return message;
-        } else {
-            return null;
-        }
+        String message = new String(consumerIterator.next().message());
+        InternalMessageSender.info("Received message : " + message);
+        return message;
     }
 }
