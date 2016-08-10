@@ -4,8 +4,6 @@ import org.syslog_ng.options.Options;
 import org.syslog_ng.options.RequiredOptionDecorator;
 import org.syslog_ng.options.StringOption;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class KafkaSourceHandler extends LogSource {
     /**
@@ -18,7 +16,6 @@ public class KafkaSourceHandler extends LogSource {
     private static final String zookeeper_session_time_out = "400";
     private static final String zookeeper_sync_time_out = "200";
     private static final String commit_interval = "1000";
-
     private KafkaProperties kafkaProperties;
     private KafkaConsumer kafkaConsumer;
 
@@ -28,7 +25,13 @@ public class KafkaSourceHandler extends LogSource {
 
     protected boolean open() {
         kafkaConsumer.startMessageListener();
-        return kafkaConsumer.createConnection();
+        boolean status = kafkaConsumer.createConnection();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return status;
     }
 
     protected void close() {
@@ -38,13 +41,11 @@ public class KafkaSourceHandler extends LogSource {
     protected int readMessage(LogMessage logMessage) {
         String message = kafkaConsumer.poll();
         if(message!=null){
-            InternalMessageSender.info("Message!! : "+message);
-            System.out.println("LogSource : "+ message);
             logMessage.setValue("MSG",message);
-            return 0;
+            return LogSource.SUCCESS;
         }
         else{
-            return 2;
+            return LogSource.NOT_CONNECTED;
         }
 
     }
@@ -77,13 +78,11 @@ public class KafkaSourceHandler extends LogSource {
     }
 
     protected boolean init() {
-        List<String> topics = new ArrayList<String>();
-        topics.add(topic);
 
         kafkaProperties = new KafkaProperties(zookeeper_host, group_id_name, zookeeper_session_time_out,
                 zookeeper_sync_time_out, commit_interval);
 
-        kafkaConsumer = new KafkaConsumer(kafkaProperties,topics,threads_number);
+        kafkaConsumer = new KafkaConsumer(kafkaProperties,topic);
 
         //toDo Need to change StringOptions constructor for LogSource
        /* Options requiredOptions = new Options();
