@@ -11,15 +11,12 @@ public class KafkaSourceHandler extends LogSource {
     private KafkaConsumer kafkaConsumer;
     private String topic;
     private String group_id;
-    int count = 0;
 
     public KafkaSourceHandler(long l) {
         super(l);
     }
 
     protected boolean open() {
-        System.out.println("=== Open"+count);
-        count++;
         kafkaConsumer.startMessageListener();
         boolean status = kafkaConsumer.createConnection();
         try {
@@ -31,14 +28,10 @@ public class KafkaSourceHandler extends LogSource {
     }
 
     protected void close() {
-        System.out.println("=== Close"+count);
-        count++;
         kafkaConsumer.shutdown();
     }
 
     protected int readMessage(LogMessage logMessage) {
-        System.out.println("=== ReadMessage"+count);
-        count++;
         String message = kafkaConsumer.poll();
         if(message!=null){
             logMessage.setValue("MSG",message);
@@ -51,25 +44,17 @@ public class KafkaSourceHandler extends LogSource {
     }
 
     protected boolean isReadable() {
-        System.out.println("=== isReadbale"+count);
-        count++;
         return kafkaConsumer.hasNext();
     }
     protected String getStatsInstance() {
-        System.out.println("=== getInstance"+count);
-        count++;
         return "Kafka_source_"+group_id+"_"+topic;
     }
 
     protected String getPersistName() {
-        System.out.println("=== getPersistName"+count);
-        count++;
         return null;
     }
 
     protected boolean init() {
-        System.out.println("=== Init"+count);
-        count++;
         String zookeeper_host;
         String group_id_name;
         String topic;
@@ -111,8 +96,6 @@ public class KafkaSourceHandler extends LogSource {
     }
 
     protected void deinit() {
-        System.out.println("=== deinit"+count);
-        count++;
         try {
             kafkaConsumer = null;
         } catch (Exception e){
