@@ -83,8 +83,17 @@ public class KafkaMessageListner {
     }
 
     public String readMessage(ConsumerIterator<byte[], byte[]> consumerIterator) {
-        String message = new String(consumerIterator.next().message());
-        InternalMessageSender.info("Received message : " + message);
-        return message;
+        try{
+            String message = new String(consumerIterator.next().message());
+            InternalMessageSender.info("Received message : " + message);
+            return message;
+        } catch (ConsumerTimeoutException exception){
+            InternalMessageSender.debug("Consumer timeout exception occurred -"+exception.getMessage());
+        }
+        return null;
+    }
+
+    public void shutdown(){
+       consumerConnector.shutdown();
     }
 }

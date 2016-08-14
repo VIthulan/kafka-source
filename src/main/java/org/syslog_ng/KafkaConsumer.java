@@ -42,4 +42,7 @@ public class KafkaConsumer {
         return kafkaMessageListner.hasNext();
     }
 
+    public void shutdown(){
+        kafkaMessageListner.shutdown();
+    }
 }

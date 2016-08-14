@@ -14,19 +14,16 @@ public class KafkaConstants {
 
     public static final String THREAD_COUNT = "thread.count";
 
-    public static final String TOPICS = "topics";
-
     public static final String AUTO_OFFSET_RESET = "auto.offset.reset";
 
     public static final String CONSUMER_TIMEOUT_MS = "consumer.timeout.ms";
 
     public static final String zookeeper_host = "zookeeper_host";
     public static final String group_id_name = "group_id_name";
-    public static final String threads_number = "threads_number";
     public static final String topic = "topic";
     public static final String zookeeper_session_time_out = "zookeeper_session_time_out";
     public static final String zookeeper_sync_time_out = "zookeeper_sync_time_out";
     public static final String commit_interval = "commit_interval";
-
+    public static final String consumer_timeout_time = "consumer_timeout_time";
 
 }
