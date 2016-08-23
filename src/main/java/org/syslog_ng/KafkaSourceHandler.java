@@ -1,9 +1,6 @@
 package org.syslog_ng;
 
-import org.syslog_ng.options.InvalidOptionException;
-import org.syslog_ng.options.Options;
-import org.syslog_ng.options.RequiredOptionDecorator;
-import org.syslog_ng.options.StringOption;
+import org.syslog_ng.options.*;
 
 
 public class KafkaSourceHandler extends LogSource {
@@ -40,7 +37,6 @@ public class KafkaSourceHandler extends LogSource {
         else{
             return LogSource.NOT_CONNECTED;
         }
-
     }
 
     protected boolean isReadable() {
@@ -67,10 +63,10 @@ public class KafkaSourceHandler extends LogSource {
         requiredOptions.put(new RequiredOptionDecorator(new StringOption(this,KafkaConstants.zookeeper_host)));
         requiredOptions.put(new RequiredOptionDecorator(new StringOption(this,KafkaConstants.group_id_name)));
         requiredOptions.put(new RequiredOptionDecorator(new StringOption(this,KafkaConstants.topic)));
-        requiredOptions.put(new RequiredOptionDecorator(new StringOption(this,KafkaConstants.zookeeper_session_time_out)));
-        requiredOptions.put(new RequiredOptionDecorator(new StringOption(this,KafkaConstants.zookeeper_sync_time_out)));
-        requiredOptions.put(new RequiredOptionDecorator(new StringOption(this,KafkaConstants.commit_interval)));
-        requiredOptions.put(new RequiredOptionDecorator(new StringOption(this,KafkaConstants.consumer_timeout_time)));
+        requiredOptions.put(new IntegerOptionDecorator(new StringOption(this,KafkaConstants.zookeeper_session_time_out,"400")));
+        requiredOptions.put(new IntegerOptionDecorator(new StringOption(this,KafkaConstants.zookeeper_sync_time_out,"200")));
+        requiredOptions.put(new IntegerOptionDecorator(new StringOption(this,KafkaConstants.commit_interval,"1000")));
+        requiredOptions.put(new IntegerOptionDecorator(new StringOption(this,KafkaConstants.consumer_timeout_time,"10000")));
         try {
             requiredOptions.validate();
         } catch (InvalidOptionException e) {
