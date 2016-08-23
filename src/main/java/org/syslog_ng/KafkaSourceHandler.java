@@ -35,6 +35,7 @@ public class KafkaSourceHandler extends LogSource {
             return LogSource.SUCCESS;
         }
         else{
+            reInitiateKafka();
             return LogSource.NOT_CONNECTED;
         }
     }
@@ -98,4 +99,15 @@ public class KafkaSourceHandler extends LogSource {
             InternalMessageSender.error("Error occurred while deinit- "+e.getMessage());
         }
     }
+    private void reInitiateKafka(){
+        kafkaConsumer.shutdown();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            InternalMessageSender.error("Error - "+e.getMessage());
+        }
+        kafkaConsumer = null;
+        kafkaConsumer = new KafkaConsumer(kafkaProperties,topic);
+    }
+
 }
