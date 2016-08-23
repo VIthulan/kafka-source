@@ -5,12 +5,6 @@ import java.util.Properties;
 
 public class KafkaProperties {
 
-    private static String zookeeper_connect = KafkaConstants.ZOOKEEPER_CONNECT;
-    private static String group_id = KafkaConstants.GROUP_ID;
-    private static String zookeeper_session_timeout_ms = KafkaConstants.ZOOKEEPER_SESSION_TIMEOUT_MS;
-    private static String zookeeper_sync_time_ms = KafkaConstants.ZOOKEEPER_SYNC_TIME_MS;
-    private static String auto_commit_interval_ms = KafkaConstants.ZOOKEEPER_COMMIT_INTERVAL_MS;
-
     private String zookeeper_host;
     private String group_id_name;
     private String zookeeper_session_time_out;
@@ -32,14 +26,12 @@ public class KafkaProperties {
     }
 
     public void setProperties() {
-        properties.put(zookeeper_connect, zookeeper_host);
-        properties.put(group_id, group_id_name);
-        properties.put(zookeeper_session_timeout_ms, zookeeper_session_time_out);
-        properties.put(zookeeper_sync_time_ms, zookeeper_sync_time);
-        properties.put(auto_commit_interval_ms, commit_interval);
+        properties.put(KafkaConstants.ZOOKEEPER_CONNECT, zookeeper_host);
+        properties.put(KafkaConstants.GROUP_ID, group_id_name);
+        properties.put(KafkaConstants.ZOOKEEPER_SESSION_TIMEOUT_MS, zookeeper_session_time_out);
+        properties.put(KafkaConstants.ZOOKEEPER_SYNC_TIME_MS, zookeeper_sync_time);
+        properties.put(KafkaConstants.ZOOKEEPER_COMMIT_INTERVAL_MS, commit_interval);
         properties.put(KafkaConstants.CONSUMER_TIMEOUT_MS,consumer_timeout_interval);
-        /*properties.put(KafkaConstants.AUTO_OFFSET_RESET,"smallest");
-        properties.put(KafkaConstants.CONSUMER_TIMEOUT_MS,"10");*/
     }
 
     public Properties getProperties() {
