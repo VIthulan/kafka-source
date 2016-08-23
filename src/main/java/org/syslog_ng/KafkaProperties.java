@@ -14,6 +14,9 @@ public class KafkaProperties {
 
     private Properties properties = new Properties();
 
+    /**
+     * Setting Kafka properties
+     */
     public KafkaProperties(String zookeeper_host, String group_id_name, String zookeeper_session_time_out,
                            String zookeeper_sync_time, String commit_interval,String consumer_timeout_interval) {
         this.zookeeper_host = zookeeper_host;

@@ -12,6 +12,9 @@ public class KafkaConsumer {
         this.topic = topic;
     }
 
+    /**
+     * Initialize Kafka message Listner
+     */
     public void startMessageListener() {
         if (kafkaMessageListner == null) {
             kafkaMessageListner = new KafkaMessageListner();
@@ -20,6 +23,10 @@ public class KafkaConsumer {
 
     }
 
+    /**
+     * Create connection with Kafka
+     * @return boolean
+     */
     public boolean createConnection() {
         try {
             if (!kafkaMessageListner.createKafkaConnector()) {
@@ -34,14 +41,25 @@ public class KafkaConsumer {
         }
     }
 
+    /**
+     * Read message from Kafka
+     * @return String read message, null if no message available
+     */
     public String poll() {
         return kafkaMessageListner.readMessage();
     }
 
+    /**
+     * Checks if there are any messages to consume
+     * @return boolean
+     */
     public boolean hasNext() {
         return kafkaMessageListner.hasNext();
     }
 
+    /**
+     * Shutdown Kafka consumer
+     */
     public void shutdown(){
         kafkaMessageListner.shutdown();
     }
