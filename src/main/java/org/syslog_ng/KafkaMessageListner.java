@@ -10,9 +10,14 @@ public class KafkaMessageListner {
     private Properties properties;
     private String topic;
     private ConsumerConnector consumerConnector;
-    private List<ConsumerIterator<byte[], byte[]>> consumerIteraror;
+    private List<ConsumerIterator<byte[], byte[]>> consumerIterator;
 
 
+    /**
+     * Initializes required variables
+     * @param properties Kafka property set by user
+     * @param topic Kafka topic to consume
+     */
     public void init(Properties properties, String topic) {
         this.properties = properties;
         InternalMessageSender.info("Kafka consumer properties are set successfully");
@@ -52,9 +57,9 @@ public class KafkaMessageListner {
                 topicCountMap.put(topic, 1);
                 Map<String, List<KafkaStream<byte[], byte[]>>> consumerStreams = consumerConnector
                         .createMessageStreams(topicCountMap);
-                consumerIteraror = new ArrayList<ConsumerIterator<byte[], byte[]>>();
+                consumerIterator = new ArrayList<ConsumerIterator<byte[], byte[]>>();
                 List<KafkaStream<byte[], byte[]>> streams = consumerStreams.get(topic);
-                consumerIteraror.add(streams.get(0).iterator());
+                consumerIterator.add(streams.get(0).iterator());
             }
         } catch (Exception e) {
             InternalMessageSender.error("Error while starting the consumer " + e.getMessage());
@@ -62,9 +67,14 @@ public class KafkaMessageListner {
     }
 
     public boolean hasNext() {
-            return hasNext(consumerIteraror.get(0));
+            return hasNext(consumerIterator.get(0));
     }
 
+    /**
+     * Checks if there are any messages to consume
+     * @param consumerIterator Consumer iterator of Kafka consumer
+     * @return boolean
+     */
     public boolean hasNext(ConsumerIterator<byte[], byte[]> consumerIterator) {
         try {
             return consumerIterator.hasNext();  //toDo this hasnext returns true / waits for new kafka message
@@ -79,9 +89,14 @@ public class KafkaMessageListner {
     }
 
     public String readMessage() {
-            return readMessage(consumerIteraror.get(0));
+            return readMessage(consumerIterator.get(0));
     }
 
+    /**
+     * Reads message from Kafka
+     * @param consumerIterator Consumer iterator of Kafka
+     * @return String message
+     */
     public String readMessage(ConsumerIterator<byte[], byte[]> consumerIterator) {
         try{
             String message = new String(consumerIterator.next().message());
@@ -93,6 +108,9 @@ public class KafkaMessageListner {
         return null;
     }
 
+    /**
+     * Shut down Kafka consumer
+     */
     public void shutdown(){
        consumerConnector.shutdown();
     }
