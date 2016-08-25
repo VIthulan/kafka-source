@@ -8,6 +8,8 @@ public class KafkaSourceHandler extends LogSource {
     private KafkaConsumer kafkaConsumer;
     private String topic;
     private String group_id;
+    private boolean isOpened = false;
+    private boolean isFirstOpen = true;
 
     public KafkaSourceHandler(long l) {
         super(l);
@@ -19,8 +21,10 @@ public class KafkaSourceHandler extends LogSource {
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            InternalMessageSender.error("Error occurred while creating connection with Kafka");
         }
+        isOpened = status;
+        isFirstOpen  = false;
         return status;
     }
 
@@ -35,14 +39,29 @@ public class KafkaSourceHandler extends LogSource {
             return LogSource.SUCCESS;
         }
         else{
-            reInitiateKafka();
+            isOpened = false;
             return LogSource.NOT_CONNECTED;
         }
     }
 
     protected boolean isReadable() {
-        return kafkaConsumer.hasNext();
+        isOpened = kafkaConsumer.hasNext();
+        return isOpened;
     }
+
+    protected boolean isOpened() {
+        if(isFirstOpen){
+            return isOpened;
+        }
+        else {
+            if(!isOpened){
+                reInitiateKafka();
+            }
+            return isOpened;
+        }
+
+    }
+
     protected String getStatsInstance() {
         return "Kafka_source_"+group_id+"_"+topic;
     }
